@@ -1,0 +1,22 @@
+package com.springboot.web.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import com.springboot.web.dto.AuditLogResponseDto;
+import com.springboot.web.service.AuditLogService;
+
+@RestController
+@RequestMapping("/audit-logs")
+public class AuditLogController {
+
+    @Autowired
+    private AuditLogService auditLogService;
+
+    @GetMapping
+    public List<AuditLogResponseDto> getAllAuditLogs() {
+        return auditLogService.getAllAuditLogs();
+    }
+}
