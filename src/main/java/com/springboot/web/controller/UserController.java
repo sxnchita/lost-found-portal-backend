@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     @Autowired
@@ -20,6 +21,9 @@ public class UserController {
 
     @PostMapping
     public UserResponseDto createUser(@Valid @RequestBody UserRequestDto userRequestDto) {
+
+        System.out.println("Register request received: " + userRequestDto.getEmail());
+
         return userService.saveUser(userRequestDto);
     }
 

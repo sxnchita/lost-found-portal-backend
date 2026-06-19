@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import com.springboot.web.dto.FoundItemRequestDto;
 import com.springboot.web.dto.FoundItemResponseDto;
 import com.springboot.web.entity.FoundItem;
+import com.springboot.web.entity.LostItem;
 import com.springboot.web.exception.ResourceNotFoundException;
 import com.springboot.web.repository.FoundItemRepository;
+import com.springboot.web.repository.LostItemRepository;
 
 @Service
 public class FoundItemService {
@@ -18,8 +20,13 @@ public class FoundItemService {
     @Autowired
     private FoundItemRepository foundItemRepository;
 
-    public FoundItemResponseDto saveFoundItem(FoundItemRequestDto dto) {
+    @Autowired
+    private LostItemRepository lostItemRepository;
 
+    @Autowired
+    private ItemMatchService itemMatchService;
+
+    public FoundItemResponseDto saveFoundItem(FoundItemRequestDto dto) {
         FoundItem foundItem = new FoundItem();
 
         foundItem.setItemName(dto.getItemName());
@@ -31,8 +38,18 @@ public class FoundItemService {
         foundItem.setFoundDate(dto.getFoundDate());
         foundItem.setImageUrl(dto.getImageUrl());
         foundItem.setAdditionalNotes(dto.getAdditionalNotes());
+        foundItem.setStatus("PENDING_APPROVAL");
 
         FoundItem savedItem = foundItemRepository.save(foundItem);
+
+        List<LostItem> lostItems = lostItemRepository.findAll();
+
+        for (LostItem lostItem : lostItems) {
+            itemMatchService.createMatch(
+                    lostItem.getLostItemId(),
+                    savedItem.getFoundItemId()
+            );
+        }
 
         return convertToResponseDto(savedItem);
     }
@@ -52,14 +69,22 @@ public class FoundItemService {
     }
 
     public FoundItemResponseDto approveFoundItem(Long foundItemId) {
-
         FoundItem foundItem = foundItemRepository.findById(foundItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Found Item Not Found"));
 
         foundItem.setStatus("ACTIVE");
 
         FoundItem updatedItem = foundItemRepository.save(foundItem);
+        return convertToResponseDto(updatedItem);
+    }
 
+    public FoundItemResponseDto rejectFoundItem(Long foundItemId) {
+        FoundItem foundItem = foundItemRepository.findById(foundItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Found Item Not Found"));
+
+        foundItem.setStatus("REJECTED");
+
+        FoundItem updatedItem = foundItemRepository.save(foundItem);
         return convertToResponseDto(updatedItem);
     }
 
@@ -92,7 +117,6 @@ public class FoundItemService {
     }
 
     private FoundItemResponseDto convertToResponseDto(FoundItem foundItem) {
-
         FoundItemResponseDto dto = new FoundItemResponseDto();
 
         dto.setFoundItemId(foundItem.getFoundItemId());
@@ -107,6 +131,11 @@ public class FoundItemService {
         dto.setAdditionalNotes(foundItem.getAdditionalNotes());
         dto.setStatus(foundItem.getStatus());
         dto.setCreatedAt(foundItem.getCreatedAt());
+
+        if (foundItem.getReportedBy() != null) {
+            dto.setReportedById(foundItem.getReportedBy().getUserId());
+            dto.setReportedByName(foundItem.getReportedBy().getFullName());
+        }
 
         return dto;
     }

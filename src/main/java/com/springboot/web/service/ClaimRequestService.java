@@ -36,20 +36,27 @@ public class ClaimRequestService {
     private UserRepository userRepository;
 
     public ClaimRequestResponseDto createClaimRequest(ClaimRequestRequestDto dto) {
+        if (claimRequestRepository.findByItemMatch_MatchId(dto.getMatchId()).isPresent()) {
+            throw new RuntimeException("A claim has already been submitted for this match.");
+        }
 
         ItemMatch itemMatch = itemMatchRepository.findById(dto.getMatchId())
                 .orElseThrow(() -> new ResourceNotFoundException("Match Not Found"));
+
+        if (!"APPROVED".equals(itemMatch.getMatchStatus())) {
+            throw new RuntimeException("Only approved matches can be claimed.");
+        }
 
         User claimant = userRepository.findById(dto.getClaimantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Claimant User Not Found"));
 
         ClaimRequest claimRequest = new ClaimRequest();
-
         claimRequest.setItemMatch(itemMatch);
         claimRequest.setClaimant(claimant);
         claimRequest.setOwnershipProof(dto.getOwnershipProof());
         claimRequest.setSpecialMarks(dto.getSpecialMarks());
         claimRequest.setAdditionalNotes(dto.getAdditionalNotes());
+        claimRequest.setClaimStatus("PENDING");
 
         ClaimRequest savedClaim = claimRequestRepository.save(claimRequest);
 
@@ -71,7 +78,6 @@ public class ClaimRequestService {
     }
 
     public ClaimRequestResponseDto approveClaim(Long claimId) {
-
         ClaimRequest claimRequest = claimRequestRepository.findById(claimId)
                 .orElseThrow(() -> new ResourceNotFoundException("Claim Request Not Found"));
 
@@ -81,7 +87,6 @@ public class ClaimRequestService {
         ClaimRequest updatedClaim = claimRequestRepository.save(claimRequest);
 
         if (updatedClaim.getClaimant() != null) {
-
             notificationService.createNotification(
                     updatedClaim.getClaimant().getUserId(),
                     "Claim Approved",
@@ -101,7 +106,6 @@ public class ClaimRequestService {
     }
 
     public ClaimRequestResponseDto rejectClaim(Long claimId) {
-
         ClaimRequest claimRequest = claimRequestRepository.findById(claimId)
                 .orElseThrow(() -> new ResourceNotFoundException("Claim Request Not Found"));
 
@@ -111,7 +115,6 @@ public class ClaimRequestService {
         ClaimRequest updatedClaim = claimRequestRepository.save(claimRequest);
 
         if (updatedClaim.getClaimant() != null) {
-
             notificationService.createNotification(
                     updatedClaim.getClaimant().getUserId(),
                     "Claim Rejected",
@@ -131,7 +134,6 @@ public class ClaimRequestService {
     }
 
     private ClaimRequestResponseDto convertToResponseDto(ClaimRequest claimRequest) {
-
         ClaimRequestResponseDto dto = new ClaimRequestResponseDto();
 
         dto.setClaimId(claimRequest.getClaimId());
@@ -144,6 +146,14 @@ public class ClaimRequestService {
 
         if (claimRequest.getItemMatch() != null) {
             dto.setMatchId(claimRequest.getItemMatch().getMatchId());
+
+            if (claimRequest.getItemMatch().getLostItem() != null) {
+                dto.setItemName(
+                        claimRequest.getItemMatch()
+                                .getLostItem()
+                                .getItemName()
+                );
+            }
         }
 
         if (claimRequest.getClaimant() != null) {

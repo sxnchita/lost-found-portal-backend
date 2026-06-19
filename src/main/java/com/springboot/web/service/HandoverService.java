@@ -39,6 +39,10 @@ public class HandoverService {
         ClaimRequest claimRequest = claimRequestRepository.findById(dto.getClaimId())
                 .orElseThrow(() -> new ResourceNotFoundException("Claim Request Not Found"));
 
+        if (handoverScheduleRepository.findByClaimRequest_ClaimId(dto.getClaimId()).isPresent()) {
+            throw new RuntimeException("Handover already scheduled for this claim");
+        }
+
         User scheduledBy = userRepository.findById(dto.getScheduledById())
                 .orElseThrow(() -> new ResourceNotFoundException("Scheduler User Not Found"));
 
@@ -50,6 +54,7 @@ public class HandoverService {
         handover.setPickupDate(dto.getPickupDate());
         handover.setPickupTime(dto.getPickupTime());
         handover.setInstructions(dto.getInstructions());
+        handover.setHandoverStatus("SCHEDULED");
 
         HandoverSchedule savedHandover = handoverScheduleRepository.save(handover);
 
@@ -79,6 +84,13 @@ public class HandoverService {
                 .collect(Collectors.toList());
     }
 
+    public List<HandoverResponseDto> getHandoversByStudent(Long userId) {
+        return handoverScheduleRepository.findByClaimRequest_Claimant_UserId(userId)
+                .stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
     public HandoverResponseDto markHandoverCompleted(Long handoverId) {
 
         HandoverSchedule handover = handoverScheduleRepository.findById(handoverId)
@@ -87,6 +99,18 @@ public class HandoverService {
         handover.setHandoverStatus("COMPLETED");
 
         HandoverSchedule updatedHandover = handoverScheduleRepository.save(handover);
+
+        if (
+                handover.getClaimRequest() != null &&
+                handover.getClaimRequest().getClaimant() != null
+        ) {
+            notificationService.createNotification(
+                    handover.getClaimRequest().getClaimant().getUserId(),
+                    "Handover Completed",
+                    "Your item handover has been marked as completed.",
+                    "HANDOVER_COMPLETED"
+            );
+        }
 
         auditLogService.createAuditLog(
                 handover.getScheduledBy() != null ? handover.getScheduledBy().getUserId() : null,

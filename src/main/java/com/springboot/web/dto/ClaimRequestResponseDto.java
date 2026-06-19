@@ -5,23 +5,18 @@ import java.time.LocalDateTime;
 public class ClaimRequestResponseDto {
 
     private Long claimId;
-
     private Long matchId;
-
     private Long claimantId;
-
     private String claimantName;
 
+    private String itemName;
+
     private String ownershipProof;
-
     private String specialMarks;
-
     private String additionalNotes;
-
     private String claimStatus;
 
     private LocalDateTime reviewedAt;
-
     private LocalDateTime createdAt;
 
     public Long getClaimId() {
@@ -54,6 +49,14 @@ public class ClaimRequestResponseDto {
 
     public void setClaimantName(String claimantName) {
         this.claimantName = claimantName;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 
     public String getOwnershipProof() {

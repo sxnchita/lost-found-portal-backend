@@ -1,5 +1,7 @@
 package com.springboot.web.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +19,17 @@ public class ItemMatchController {
     public ItemMatch createMatch(
             @RequestParam Long lostItemId,
             @RequestParam Long foundItemId) {
-
         return itemMatchService.createMatch(lostItemId, foundItemId);
+    }
+
+    @GetMapping
+    public List<ItemMatch> getAllMatches() {
+        return itemMatchService.getAllMatches();
+    }
+    
+    @GetMapping("/student/{userId}")
+    public List<ItemMatch> getApprovedMatchesByStudent(@PathVariable Long userId) {
+        return itemMatchService.getApprovedMatchesByStudent(userId);
     }
 
     @PutMapping("/{id}/approve")

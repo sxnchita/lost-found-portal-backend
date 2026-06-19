@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/found-items")
+@CrossOrigin(origins = "http://localhost:5173")
 public class FoundItemController {
 
     @Autowired
@@ -36,6 +37,11 @@ public class FoundItemController {
     @PutMapping("/{id}/approve")
     public FoundItemResponseDto approveFoundItem(@PathVariable Long id) {
         return foundItemService.approveFoundItem(id);
+    }
+
+    @PutMapping("/{id}/reject")
+    public FoundItemResponseDto rejectFoundItem(@PathVariable Long id) {
+        return foundItemService.rejectFoundItem(id);
     }
 
     @GetMapping("/search")

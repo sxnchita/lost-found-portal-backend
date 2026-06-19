@@ -30,6 +30,8 @@ public class FoundItemRequestDto {
 
     private String additionalNotes;
 
+    // Getters and Setters
+
     public String getItemName() {
         return itemName;
     }

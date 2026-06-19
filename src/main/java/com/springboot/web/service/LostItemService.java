@@ -1,6 +1,12 @@
 package com.springboot.web.service;
 
+import com.springboot.web.dto.LostItemRequestDto;
+import com.springboot.web.dto.LostItemResponseDto;
+import com.springboot.web.entity.LostItem;
+
 import com.springboot.web.exception.ResourceNotFoundException;
+import com.springboot.web.repository.LostItemRepository;
+import com.springboot.web.repository.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,16 +14,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.springboot.web.dto.LostItemRequestDto;
-import com.springboot.web.dto.LostItemResponseDto;
-import com.springboot.web.entity.LostItem;
-import com.springboot.web.repository.LostItemRepository;
-
 @Service
 public class LostItemService {
 
     @Autowired
     private LostItemRepository lostItemRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public LostItemResponseDto saveLostItem(LostItemRequestDto dto) {
 
@@ -32,9 +36,11 @@ public class LostItemService {
         lostItem.setLostDate(dto.getLostDate());
         lostItem.setImageUrl(dto.getImageUrl());
         lostItem.setSpecialFeatures(dto.getSpecialFeatures());
+        lostItem.setStatus("PENDING_APPROVAL");
+
+        
 
         LostItem savedItem = lostItemRepository.save(lostItem);
-
         return convertToResponseDto(savedItem);
     }
 
@@ -47,22 +53,28 @@ public class LostItemService {
 
     public LostItemResponseDto getLostItemById(Long id) {
         LostItem lostItem = lostItemRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Lost Item Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
 
         return convertToResponseDto(lostItem);
     }
 
     public LostItemResponseDto approveLostItem(Long lostItemId) {
-
         LostItem lostItem = lostItemRepository.findById(lostItemId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Lost Item Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
 
         lostItem.setStatus("ACTIVE");
 
         LostItem updatedItem = lostItemRepository.save(lostItem);
+        return convertToResponseDto(updatedItem);
+    }
 
+    public LostItemResponseDto rejectLostItem(Long lostItemId) {
+        LostItem lostItem = lostItemRepository.findById(lostItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
+
+        lostItem.setStatus("REJECTED");
+
+        LostItem updatedItem = lostItemRepository.save(lostItem);
         return convertToResponseDto(updatedItem);
     }
 
@@ -95,7 +107,6 @@ public class LostItemService {
     }
 
     private LostItemResponseDto convertToResponseDto(LostItem lostItem) {
-
         LostItemResponseDto dto = new LostItemResponseDto();
 
         dto.setLostItemId(lostItem.getLostItemId());
@@ -110,6 +121,11 @@ public class LostItemService {
         dto.setSpecialFeatures(lostItem.getSpecialFeatures());
         dto.setStatus(lostItem.getStatus());
         dto.setCreatedAt(lostItem.getCreatedAt());
+
+        if (lostItem.getReportedBy() != null) {
+            dto.setReportedById(lostItem.getReportedBy().getUserId());
+            dto.setReportedByName(lostItem.getReportedBy().getFullName());
+        }
 
         return dto;
     }

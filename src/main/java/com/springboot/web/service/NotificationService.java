@@ -32,43 +32,32 @@ public class NotificationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
         Notification notification = new Notification();
-
         notification.setUser(user);
         notification.setTitle(title);
         notification.setMessage(message);
         notification.setNotificationType(notificationType);
+        notification.setIsRead(false);
 
-        Notification savedNotification = notificationRepository.save(notification);
-
-        return convertToResponseDto(savedNotification);
+        return convertToResponseDto(notificationRepository.save(notification));
     }
 
     public List<NotificationResponseDto> getNotificationsByUser(Long userId) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
-
-        return notificationRepository.findAll()
+        return notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
                 .stream()
-                .filter(notification -> notification.getUser().getUserId().equals(user.getUserId()))
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
     }
 
     public NotificationResponseDto markAsRead(Long notificationId) {
-
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification Not Found"));
 
         notification.setIsRead(true);
 
-        Notification updatedNotification = notificationRepository.save(notification);
-
-        return convertToResponseDto(updatedNotification);
+        return convertToResponseDto(notificationRepository.save(notification));
     }
 
     private NotificationResponseDto convertToResponseDto(Notification notification) {
-
         NotificationResponseDto dto = new NotificationResponseDto();
 
         dto.setNotificationId(notification.getNotificationId());

@@ -5,15 +5,11 @@ import java.time.LocalDateTime;
 public class AuditLogResponseDto {
 
     private Long auditId;
-
     private Long userId;
-
+    private String userName;   // ⭐ New field
     private String action;
-
     private String entityName;
-
     private Long entityId;
-
     private LocalDateTime createdAt;
 
     public Long getAuditId() {
@@ -30,6 +26,14 @@ public class AuditLogResponseDto {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getAction() {

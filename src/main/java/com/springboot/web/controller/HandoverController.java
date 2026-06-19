@@ -26,6 +26,11 @@ public class HandoverController {
         return handoverService.getAllHandovers();
     }
 
+    @GetMapping("/student/{userId}")
+    public List<HandoverResponseDto> getHandoversByStudent(@PathVariable Long userId) {
+        return handoverService.getHandoversByStudent(userId);
+    }
+
     @PutMapping("/{id}/complete")
     public HandoverResponseDto markHandoverCompleted(@PathVariable Long id) {
         return handoverService.markHandoverCompleted(id);

@@ -1,5 +1,8 @@
 package com.springboot.web.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +26,21 @@ public class ItemMatchService {
     private FoundItemRepository foundItemRepository;
 
     public ItemMatch createMatch(Long lostItemId, Long foundItemId) {
+        var existingMatch =
+                itemMatchRepository.findByLostItem_LostItemIdAndFoundItem_FoundItemId(
+                        lostItemId,
+                        foundItemId
+                );
 
-        LostItem lostItem = lostItemRepository.findById(lostItemId).orElse(null);
-        FoundItem foundItem = foundItemRepository.findById(foundItemId).orElse(null);
-
-        if (lostItem == null || foundItem == null) {
-            return null;
+        if (existingMatch.isPresent()) {
+            return existingMatch.get();
         }
+
+        LostItem lostItem = lostItemRepository.findById(lostItemId)
+                .orElseThrow(() -> new RuntimeException("Lost item not found"));
+
+        FoundItem foundItem = foundItemRepository.findById(foundItemId)
+                .orElseThrow(() -> new RuntimeException("Found item not found"));
 
         int score = calculateMatchScore(lostItem, foundItem);
 
@@ -43,26 +54,30 @@ public class ItemMatchService {
         return itemMatchRepository.save(itemMatch);
     }
 
+    public List<ItemMatch> getAllMatches() {
+        return itemMatchRepository.findAll();
+    }
+
+    public List<ItemMatch> getApprovedMatchesByStudent(Long userId) {
+        return itemMatchRepository.findAll()
+                .stream()
+                .filter(match -> "APPROVED".equals(match.getMatchStatus()))
+                .toList();
+    }
+
     public ItemMatch approveMatch(Long matchId) {
-
-        ItemMatch itemMatch = itemMatchRepository.findById(matchId).orElse(null);
-
-        if (itemMatch == null) {
-            return null;
-        }
+        ItemMatch itemMatch = itemMatchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
 
         itemMatch.setMatchStatus("APPROVED");
+        itemMatch.setApprovedAt(LocalDateTime.now());
 
         return itemMatchRepository.save(itemMatch);
     }
 
     public ItemMatch rejectMatch(Long matchId) {
-
-        ItemMatch itemMatch = itemMatchRepository.findById(matchId).orElse(null);
-
-        if (itemMatch == null) {
-            return null;
-        }
+        ItemMatch itemMatch = itemMatchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
 
         itemMatch.setMatchStatus("REJECTED");
 
@@ -70,44 +85,24 @@ public class ItemMatchService {
     }
 
     private int calculateMatchScore(LostItem lostItem, FoundItem foundItem) {
-
         int score = 0;
 
-        if (lostItem.getItemName() != null && foundItem.getItemName() != null &&
-                lostItem.getItemName().equalsIgnoreCase(foundItem.getItemName())) {
-            score += 40;
-        }
-
-        if (lostItem.getCategory() != null && foundItem.getCategory() != null &&
-                lostItem.getCategory().equalsIgnoreCase(foundItem.getCategory())) {
-            score += 20;
-        }
-
-        if (lostItem.getColor() != null && foundItem.getColor() != null &&
-                lostItem.getColor().equalsIgnoreCase(foundItem.getColor())) {
-            score += 15;
-        }
-
-        if (lostItem.getLostLocation() != null && foundItem.getFoundLocation() != null &&
-                lostItem.getLostLocation().equalsIgnoreCase(foundItem.getFoundLocation())) {
-            score += 15;
-        }
-
-        if (lostItem.getModel() != null && foundItem.getModel() != null &&
-                lostItem.getModel().equalsIgnoreCase(foundItem.getModel())) {
-            score += 10;
-        }
+        if (same(lostItem.getItemName(), foundItem.getItemName())) score += 40;
+        if (same(lostItem.getCategory(), foundItem.getCategory())) score += 20;
+        if (same(lostItem.getColor(), foundItem.getColor())) score += 15;
+        if (same(lostItem.getLostLocation(), foundItem.getFoundLocation())) score += 15;
+        if (same(lostItem.getModel(), foundItem.getModel())) score += 10;
 
         return score;
     }
 
+    private boolean same(String a, String b) {
+        return a != null && b != null && a.trim().equalsIgnoreCase(b.trim());
+    }
+
     private String getMatchLevel(int score) {
-        if (score >= 80) {
-            return "HIGH";
-        } else if (score >= 50) {
-            return "MEDIUM";
-        } else {
-            return "LOW";
-        }
+        if (score >= 80) return "HIGH";
+        if (score >= 50) return "MEDIUM";
+        return "LOW";
     }
 }

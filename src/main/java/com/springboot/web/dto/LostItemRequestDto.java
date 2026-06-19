@@ -2,7 +2,6 @@ package com.springboot.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDate;
 
 public class LostItemRequestDto {
@@ -29,6 +28,8 @@ public class LostItemRequestDto {
     private String imageUrl;
 
     private String specialFeatures;
+
+    // Getters and Setters
 
     public String getItemName() {
         return itemName;

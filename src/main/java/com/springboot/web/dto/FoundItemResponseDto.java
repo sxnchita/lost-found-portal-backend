@@ -27,6 +27,11 @@ public class FoundItemResponseDto {
 
     private String status;
 
+    // NEW FIELDS
+    private Long reportedById;
+
+    private String reportedByName;
+
     private LocalDateTime createdAt;
 
     public Long getFoundItemId() {
@@ -115,6 +120,22 @@ public class FoundItemResponseDto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getReportedById() {
+        return reportedById;
+    }
+
+    public void setReportedById(Long reportedById) {
+        this.reportedById = reportedById;
+    }
+
+    public String getReportedByName() {
+        return reportedByName;
+    }
+
+    public void setReportedByName(String reportedByName) {
+        this.reportedByName = reportedByName;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -10,8 +10,8 @@ import com.springboot.web.service.AuditLogService;
 
 @RestController
 @RequestMapping("/audit-logs")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuditLogController {
-
     @Autowired
     private AuditLogService auditLogService;
 

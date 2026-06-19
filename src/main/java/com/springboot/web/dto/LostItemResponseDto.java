@@ -6,26 +6,19 @@ import java.time.LocalDateTime;
 public class LostItemResponseDto {
 
     private Long lostItemId;
-
     private String itemName;
-
     private String category;
-
     private String color;
-
     private String model;
-
     private String description;
-
     private String lostLocation;
-
     private LocalDate lostDate;
-
     private String imageUrl;
-
     private String specialFeatures;
-
     private String status;
+
+    private Long reportedById;
+    private String reportedByName;
 
     private LocalDateTime createdAt;
 
@@ -115,6 +108,22 @@ public class LostItemResponseDto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getReportedById() {
+        return reportedById;
+    }
+
+    public void setReportedById(Long reportedById) {
+        this.reportedById = reportedById;
+    }
+
+    public String getReportedByName() {
+        return reportedByName;
+    }
+
+    public void setReportedByName(String reportedByName) {
+        this.reportedByName = reportedByName;
     }
 
     public LocalDateTime getCreatedAt() {

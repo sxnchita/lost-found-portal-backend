@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.springboot.web.dto.UserRequestDto;
 import com.springboot.web.dto.UserResponseDto;
+import com.springboot.web.entity.Role;
 import com.springboot.web.entity.User;
+import com.springboot.web.exception.ResourceNotFoundException;
+import com.springboot.web.repository.RoleRepository;
 import com.springboot.web.repository.UserRepository;
 
 @Service
@@ -17,19 +21,32 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public UserResponseDto saveUser(UserRequestDto userRequestDto) {
+        if (userRepository.findByEmail(userRequestDto.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        Role studentRole = roleRepository.findByRoleName("STUDENT")
+                .orElseThrow(() -> new RuntimeException("STUDENT role not found"));
 
         User user = new User();
 
         user.setFullName(userRequestDto.getFullName());
         user.setEmail(userRequestDto.getEmail());
-        user.setPassword(userRequestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         user.setRollNumber(userRequestDto.getRollNumber());
         user.setDepartment(userRequestDto.getDepartment());
         user.setPhone(userRequestDto.getPhone());
+        user.setRole(studentRole);
+        user.setIsActive(true);
 
         User savedUser = userRepository.save(user);
-
         return convertToResponseDto(savedUser);
     }
 
@@ -41,11 +58,8 @@ public class UserService {
     }
 
     public UserResponseDto getUserById(Long id) {
-        User user = userRepository.findById(id).orElse(null);
-
-        if (user == null) {
-            return null;
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
         return convertToResponseDto(user);
     }
@@ -55,7 +69,6 @@ public class UserService {
     }
 
     private UserResponseDto convertToResponseDto(User user) {
-
         UserResponseDto dto = new UserResponseDto();
 
         dto.setUserId(user.getUserId());
