@@ -28,14 +28,24 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponseDto login(@RequestBody LoginRequestDto loginRequestDto) {
 
-        // Normalize email
         String email = loginRequestDto.getEmail().trim().toLowerCase();
+
+        System.out.println("========== LOGIN DEBUG ==========");
+        System.out.println("Input Email: " + email);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Verify password
-        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
+        System.out.println("Stored Password Hash: " + user.getPassword());
+
+        boolean matches = passwordEncoder.matches(
+                loginRequestDto.getPassword(),
+                user.getPassword()
+        );
+
+        System.out.println("Password Matches: " + matches);
+
+        if (!matches) {
             throw new RuntimeException("Bad credentials");
         }
 
