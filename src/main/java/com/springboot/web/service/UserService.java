@@ -28,7 +28,10 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public UserResponseDto saveUser(UserRequestDto userRequestDto) {
-        if (userRepository.findByEmail(userRequestDto.getEmail()).isPresent()) {
+
+        String email = userRequestDto.getEmail().trim().toLowerCase();
+
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email already exists");
         }
 
@@ -36,9 +39,8 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("STUDENT role not found"));
 
         User user = new User();
-
         user.setFullName(userRequestDto.getFullName());
-        user.setEmail(userRequestDto.getEmail());
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         user.setRollNumber(userRequestDto.getRollNumber());
         user.setDepartment(userRequestDto.getDepartment());

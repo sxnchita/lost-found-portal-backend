@@ -6,19 +6,15 @@ import com.springboot.web.dto.LoginResponseDto;
 import com.springboot.web.entity.User;
 import com.springboot.web.repository.UserRepository;
 import com.springboot.web.service.JwtService;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 public class AuthController {
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
     @Autowired
     private UserRepository userRepository;
@@ -31,15 +27,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public LoginResponseDto login(@RequestBody LoginRequestDto loginRequestDto) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getEmail(),
-                        loginRequestDto.getPassword()
-                )
-        );
 
-        User user = userRepository.findByEmail(loginRequestDto.getEmail())
+        // Normalize email
+        String email = loginRequestDto.getEmail().trim().toLowerCase();
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify password
+        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Bad credentials");
+        }
 
         String role = user.getRole() != null
                 ? user.getRole().getRoleName()
@@ -58,7 +56,10 @@ public class AuthController {
 
     @PutMapping("/forgot-password")
     public String forgotPassword(@RequestBody ForgotPasswordDto dto) {
-        User user = userRepository.findByEmail(dto.getEmail())
+
+        String email = dto.getEmail().trim().toLowerCase();
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found"));
 
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
