@@ -2,11 +2,13 @@ package com.springboot.web.config;
 
 import java.util.List;
 
+import com.springboot.web.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,9 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.*;
 
 @Configuration
 public class SecurityConfig {
@@ -25,37 +25,23 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-
-                .requestMatchers(
-                    "/auth/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/v3/api-docs/**"
-                ).permitAll()
-
+                .requestMatchers("/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
-
-                .requestMatchers(
-                    "/lost-items/**",
-                    "/found-items/**"
-                ).permitAll()
-
-                .requestMatchers(
-                    "/claims/*/approve",
-                    "/claims/*/reject",
-                    "/users/**"
-                ).hasRole("ADMIN")
-
+                .requestMatchers("/lost-items/**", "/found-items/**").permitAll()
+                .requestMatchers("/claims/*/approve", "/claims/*/reject", "/users/**").hasRole("ADMIN")
                 .requestMatchers(
                     "/claims/**",
                     "/matches/**",
@@ -64,13 +50,20 @@ public class SecurityConfig {
                     "/notifications/**",
                     "/handovers/**"
                 ).hasAnyAuthority("ADMIN", "ROLE_ADMIN", "STUDENT", "ROLE_STUDENT")
-
                 .anyRequest().authenticated()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 
     @Bean
@@ -83,10 +76,7 @@ public class SecurityConfig {
             "https://*.vercel.app"
         ));
 
-        configuration.setAllowedMethods(List.of(
-            "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
-
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
@@ -103,9 +93,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }
