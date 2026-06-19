@@ -37,43 +37,38 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 .requestMatchers(
-                        "/auth/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**"
+                    "/auth/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**"
                 ).permitAll()
 
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
 
                 .requestMatchers(
-                        "/lost-items/**",
-                        "/found-items/**"
+                    "/lost-items/**",
+                    "/found-items/**"
                 ).permitAll()
 
                 .requestMatchers(
-                        "/claims/*/approve",
-                        "/claims/*/reject",
-                        "/users/**"
+                    "/claims/*/approve",
+                    "/claims/*/reject",
+                    "/users/**"
                 ).hasRole("ADMIN")
 
                 .requestMatchers(
-                        "/claims/**",
-                        "/matches/**",
-                        "/item-matches/**",
-                        "/handover-schedules/**",
-                        "/notifications/**"
+                    "/claims/**",
+                    "/matches/**",
+                    "/item-matches/**",
+                    "/handover-schedules/**",
+                    "/notifications/**",
+                    "/handovers/**"
                 ).hasAnyAuthority("ADMIN", "ROLE_ADMIN", "STUDENT", "ROLE_STUDENT")
-                
-                .requestMatchers("/handovers/**")
-                .hasAnyAuthority("ADMIN", "ROLE_ADMIN", "STUDENT", "ROLE_STUDENT")
 
                 .anyRequest().authenticated()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
-            .addFilterBefore(
-                    jwtAuthenticationFilter,
-                    UsernamePasswordAuthenticationFilter.class
-            );
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -82,17 +77,21 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of(
-        	    "http://localhost:5173",
-        	    "http://localhost:5174"
-        	));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "https://*.vercel.app"
+        ));
+
+        configuration.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
