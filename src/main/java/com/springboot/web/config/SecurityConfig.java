@@ -2,13 +2,10 @@ package com.springboot.web.config;
 
 import java.util.List;
 
-import com.springboot.web.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,11 +19,11 @@ import org.springframework.web.cors.*;
 @Configuration
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -36,7 +33,6 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
@@ -56,14 +52,6 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(customUserDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
     }
 
     @Bean

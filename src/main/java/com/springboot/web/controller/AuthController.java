@@ -33,7 +33,7 @@ public class AuthController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // TEMP DEMO FIX: bypass password check
+        // TEMP DEMO FIX: password check bypassed
         System.out.println("Temporary demo login bypass active");
 
         String role = user.getRole() != null
@@ -63,5 +63,10 @@ public class AuthController {
         userRepository.save(user);
 
         return "Password reset successfully";
+    }
+
+    @GetMapping("/ping")
+    public String ping() {
+        return "LATEST_BACKEND_CODE";
     }
 }
