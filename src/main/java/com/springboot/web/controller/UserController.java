@@ -13,7 +13,13 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(
+    origins = {
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://campus-lost-found-portal-psi.vercel.app"
+    }
+)
 public class UserController {
 
     @Autowired
@@ -21,9 +27,7 @@ public class UserController {
 
     @PostMapping
     public UserResponseDto createUser(@Valid @RequestBody UserRequestDto userRequestDto) {
-
         System.out.println("Register request received: " + userRequestDto.getEmail());
-
         return userService.saveUser(userRequestDto);
     }
 

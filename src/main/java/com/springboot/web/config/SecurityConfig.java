@@ -34,19 +34,11 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                .requestMatchers("/lost-items/**", "/found-items/**").permitAll()
-                .requestMatchers("/claims/*/approve", "/claims/*/reject", "/users/**").hasRole("ADMIN")
-                .requestMatchers(
-                    "/claims/**",
-                    "/matches/**",
-                    "/item-matches/**",
-                    "/handover-schedules/**",
-                    "/notifications/**",
-                    "/handovers/**"
-                ).hasAnyAuthority("ADMIN", "ROLE_ADMIN", "STUDENT", "ROLE_STUDENT")
-                .anyRequest().authenticated()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                .anyRequest().permitAll()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
