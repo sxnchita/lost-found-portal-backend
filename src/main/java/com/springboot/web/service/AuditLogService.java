@@ -23,7 +23,6 @@ public class AuditLogService {
     private UserRepository userRepository;
 
     public void createAuditLog(Long userId, String action, String entityName, Long entityId) {
-
         User user = null;
 
         if (userId != null) {
@@ -32,7 +31,6 @@ public class AuditLogService {
         }
 
         AuditLog auditLog = new AuditLog();
-
         auditLog.setUser(user);
         auditLog.setAction(action);
         auditLog.setEntityName(entityName);
@@ -48,8 +46,14 @@ public class AuditLogService {
                 .collect(Collectors.toList());
     }
 
-    private AuditLogResponseDto convertToResponseDto(AuditLog auditLog) {
+    public List<AuditLogResponseDto> getRecentAuditLogs() {
+        return auditLogRepository.findTop10ByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
 
+    private AuditLogResponseDto convertToResponseDto(AuditLog auditLog) {
         AuditLogResponseDto dto = new AuditLogResponseDto();
 
         dto.setAuditId(auditLog.getAuditId());

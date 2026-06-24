@@ -3,7 +3,6 @@ package com.springboot.web.service;
 import com.springboot.web.dto.LostItemRequestDto;
 import com.springboot.web.dto.LostItemResponseDto;
 import com.springboot.web.entity.LostItem;
-
 import com.springboot.web.exception.ResourceNotFoundException;
 import com.springboot.web.repository.LostItemRepository;
 import com.springboot.web.repository.UserRepository;
@@ -12,6 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,8 +24,10 @@ public class LostItemService {
     @Autowired
     private UserRepository userRepository;
 
-    public LostItemResponseDto saveLostItem(LostItemRequestDto dto) {
+    @Autowired
+    private AuditLogService auditLogService;
 
+    public LostItemResponseDto saveLostItem(LostItemRequestDto dto) {
         LostItem lostItem = new LostItem();
 
         lostItem.setItemName(dto.getItemName());
@@ -38,9 +41,15 @@ public class LostItemService {
         lostItem.setSpecialFeatures(dto.getSpecialFeatures());
         lostItem.setStatus("PENDING_APPROVAL");
 
-        
-
         LostItem savedItem = lostItemRepository.save(lostItem);
+
+        auditLogService.createAuditLog(
+                null,
+                "LOST_ITEM_REPORTED",
+                "LostItem",
+                savedItem.getLostItemId()
+        );
+
         return convertToResponseDto(savedItem);
     }
 
@@ -51,13 +60,17 @@ public class LostItemService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "lostItems", key = "#id")
     public LostItemResponseDto getLostItemById(Long id) {
+        System.out.println("CACHE MISS: Fetching lost item from DATABASE for id = " + id);
+
         LostItem lostItem = lostItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
 
         return convertToResponseDto(lostItem);
     }
 
+    @CacheEvict(value = "lostItems", key = "#lostItemId")
     public LostItemResponseDto approveLostItem(Long lostItemId) {
         LostItem lostItem = lostItemRepository.findById(lostItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
@@ -65,9 +78,18 @@ public class LostItemService {
         lostItem.setStatus("ACTIVE");
 
         LostItem updatedItem = lostItemRepository.save(lostItem);
+
+        auditLogService.createAuditLog(
+                null,
+                "LOST_ITEM_APPROVED",
+                "LostItem",
+                lostItemId
+        );
+
         return convertToResponseDto(updatedItem);
     }
 
+    @CacheEvict(value = "lostItems", key = "#lostItemId")
     public LostItemResponseDto rejectLostItem(Long lostItemId) {
         LostItem lostItem = lostItemRepository.findById(lostItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
@@ -75,6 +97,14 @@ public class LostItemService {
         lostItem.setStatus("REJECTED");
 
         LostItem updatedItem = lostItemRepository.save(lostItem);
+
+        auditLogService.createAuditLog(
+                null,
+                "LOST_ITEM_REJECTED",
+                "LostItem",
+                lostItemId
+        );
+
         return convertToResponseDto(updatedItem);
     }
 

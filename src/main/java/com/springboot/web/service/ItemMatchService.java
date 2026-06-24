@@ -87,13 +87,34 @@ public class ItemMatchService {
     private int calculateMatchScore(LostItem lostItem, FoundItem foundItem) {
         int score = 0;
 
-        if (same(lostItem.getItemName(), foundItem.getItemName())) score += 40;
-        if (same(lostItem.getCategory(), foundItem.getCategory())) score += 20;
-        if (same(lostItem.getColor(), foundItem.getColor())) score += 15;
-        if (same(lostItem.getLostLocation(), foundItem.getFoundLocation())) score += 15;
+        if (same(lostItem.getCategory(), foundItem.getCategory())) score += 25;
+        if (same(lostItem.getColor(), foundItem.getColor())) score += 20;
         if (same(lostItem.getModel(), foundItem.getModel())) score += 10;
 
-        return score;
+        score += similarityScore(lostItem.getItemName(), foundItem.getItemName(), 25);
+        score += similarityScore(lostItem.getLostLocation(), foundItem.getFoundLocation(), 10);
+        score += similarityScore(lostItem.getDescription(), foundItem.getDescription(), 10);
+
+        return Math.min(score, 100);
+    }
+
+    private int similarityScore(String a, String b, int maxScore) {
+        if (a == null || b == null) return 0;
+
+        String[] wordsA = a.toLowerCase().trim().split("\\s+");
+        String textB = b.toLowerCase();
+
+        int matches = 0;
+
+        for (String word : wordsA) {
+            if (word.length() > 2 && textB.contains(word)) {
+                matches++;
+            }
+        }
+
+        if (wordsA.length == 0) return 0;
+
+        return (matches * maxScore) / wordsA.length;
     }
 
     private boolean same(String a, String b) {

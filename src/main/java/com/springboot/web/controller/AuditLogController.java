@@ -12,11 +12,17 @@ import com.springboot.web.service.AuditLogService;
 @RequestMapping("/audit-logs")
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuditLogController {
+
     @Autowired
     private AuditLogService auditLogService;
 
     @GetMapping
     public List<AuditLogResponseDto> getAllAuditLogs() {
         return auditLogService.getAllAuditLogs();
+    }
+
+    @GetMapping("/recent")
+    public List<AuditLogResponseDto> getRecentAuditLogs() {
+        return auditLogService.getRecentAuditLogs();
     }
 }

@@ -1,9 +1,12 @@
 package com.springboot.web.dto;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class LostItemResponseDto {
+public class LostItemResponseDto implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Long lostItemId;
     private String itemName;
@@ -16,10 +19,8 @@ public class LostItemResponseDto {
     private String imageUrl;
     private String specialFeatures;
     private String status;
-
     private Long reportedById;
     private String reportedByName;
-
     private LocalDateTime createdAt;
 
     public Long getLostItemId() {
