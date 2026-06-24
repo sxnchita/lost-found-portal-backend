@@ -17,7 +17,16 @@ import jakarta.validation.Valid;
     origins = {
         "http://localhost:5173",
         "http://localhost:5174",
+        "https://campus-lost-found-portal-fwu57z76g-sanchita-seanaptis-projects.vercel.app",
         "https://campus-lost-found-portal-psi.vercel.app"
+    },
+    allowedHeaders = "*",
+    methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
     }
 )
 public class UserController {
