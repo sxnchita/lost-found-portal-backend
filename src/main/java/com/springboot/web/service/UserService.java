@@ -36,7 +36,11 @@ public class UserService {
         }
 
         Role studentRole = roleRepository.findByRoleName("STUDENT")
-                .orElseThrow(() -> new RuntimeException("STUDENT role not found"));
+                .orElseGet(() -> {
+                    Role role = new Role();
+                    role.setRoleName("STUDENT");
+                    return roleRepository.save(role);
+                });
 
         User user = new User();
         user.setFullName(userRequestDto.getFullName());
