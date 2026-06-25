@@ -47,11 +47,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "https://campus-lost-found-portal-psi.vercel.app"
-        ));
+        configuration.setAllowedOriginPatterns(List.of(
+        	    "http://localhost:5173",
+        	    "http://localhost:5174",
+        	    "https://campus-lost-found-portal-psi.vercel.app",
+        	    "https://campus-lost-found-portal-*.vercel.app"
+        	));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
