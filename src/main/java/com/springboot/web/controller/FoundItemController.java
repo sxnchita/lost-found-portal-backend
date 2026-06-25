@@ -13,7 +13,10 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/found-items")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+	    "http://localhost:5173",
+	    "https://campus-lost-found-portal-67j0d8buz-sanchita-seanapti-s-projects.vercel.app"
+	})
 public class FoundItemController {
 
     @Autowired
