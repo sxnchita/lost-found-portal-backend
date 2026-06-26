@@ -2,7 +2,6 @@ package com.springboot.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDate;
 
 public class FoundItemRequestDto {
@@ -14,7 +13,6 @@ public class FoundItemRequestDto {
     private String category;
 
     private String color;
-
     private String model;
 
     @NotBlank(message = "Description is required")
@@ -27,10 +25,10 @@ public class FoundItemRequestDto {
     private LocalDate foundDate;
 
     private String imageUrl;
-
     private String additionalNotes;
 
-    // Getters and Setters
+    // NEW
+    private Long reportedById;
 
     public String getItemName() {
         return itemName;
@@ -102,5 +100,13 @@ public class FoundItemRequestDto {
 
     public void setAdditionalNotes(String additionalNotes) {
         this.additionalNotes = additionalNotes;
+    }
+
+    public Long getReportedById() {
+        return reportedById;
+    }
+
+    public void setReportedById(Long reportedById) {
+        this.reportedById = reportedById;
     }
 }

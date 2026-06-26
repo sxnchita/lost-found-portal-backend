@@ -3,6 +3,7 @@ package com.springboot.web.service;
 import com.springboot.web.dto.LostItemRequestDto;
 import com.springboot.web.dto.LostItemResponseDto;
 import com.springboot.web.entity.LostItem;
+import com.springboot.web.entity.User;
 import com.springboot.web.exception.ResourceNotFoundException;
 import com.springboot.web.repository.LostItemRepository;
 import com.springboot.web.repository.UserRepository;
@@ -41,6 +42,13 @@ public class LostItemService {
         lostItem.setSpecialFeatures(dto.getSpecialFeatures());
         lostItem.setStatus("PENDING_APPROVAL");
 
+        if (dto.getReportedById() != null) {
+            User user = userRepository.findById(dto.getReportedById())
+                    .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+
+            lostItem.setReportedBy(user);
+        }
+
         LostItem savedItem = lostItemRepository.save(lostItem);
 
         auditLogService.createAuditLog(
@@ -62,8 +70,6 @@ public class LostItemService {
 
     @Cacheable(value = "lostItems", key = "#id")
     public LostItemResponseDto getLostItemById(Long id) {
-        System.out.println("CACHE MISS: Fetching lost item from DATABASE for id = " + id);
-
         LostItem lostItem = lostItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
 
@@ -76,15 +82,9 @@ public class LostItemService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
 
         lostItem.setStatus("ACTIVE");
-
         LostItem updatedItem = lostItemRepository.save(lostItem);
 
-        auditLogService.createAuditLog(
-                null,
-                "LOST_ITEM_APPROVED",
-                "LostItem",
-                lostItemId
-        );
+        auditLogService.createAuditLog(null, "LOST_ITEM_APPROVED", "LostItem", lostItemId);
 
         return convertToResponseDto(updatedItem);
     }
@@ -95,15 +95,9 @@ public class LostItemService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lost Item Not Found"));
 
         lostItem.setStatus("REJECTED");
-
         LostItem updatedItem = lostItemRepository.save(lostItem);
 
-        auditLogService.createAuditLog(
-                null,
-                "LOST_ITEM_REJECTED",
-                "LostItem",
-                lostItemId
-        );
+        auditLogService.createAuditLog(null, "LOST_ITEM_REJECTED", "LostItem", lostItemId);
 
         return convertToResponseDto(updatedItem);
     }

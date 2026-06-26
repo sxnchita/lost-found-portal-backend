@@ -10,9 +10,11 @@ import com.springboot.web.dto.FoundItemRequestDto;
 import com.springboot.web.dto.FoundItemResponseDto;
 import com.springboot.web.entity.FoundItem;
 import com.springboot.web.entity.LostItem;
+import com.springboot.web.entity.User;
 import com.springboot.web.exception.ResourceNotFoundException;
 import com.springboot.web.repository.FoundItemRepository;
 import com.springboot.web.repository.LostItemRepository;
+import com.springboot.web.repository.UserRepository;
 
 @Service
 public class FoundItemService {
@@ -22,6 +24,9 @@ public class FoundItemService {
 
     @Autowired
     private LostItemRepository lostItemRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ItemMatchService itemMatchService;
@@ -40,15 +45,17 @@ public class FoundItemService {
         foundItem.setAdditionalNotes(dto.getAdditionalNotes());
         foundItem.setStatus("PENDING_APPROVAL");
 
+        if (dto.getReportedById() != null) {
+            User user = userRepository.findById(dto.getReportedById())
+                    .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+            foundItem.setReportedBy(user);
+        }
+
         FoundItem savedItem = foundItemRepository.save(foundItem);
 
         List<LostItem> lostItems = lostItemRepository.findAll();
-
         for (LostItem lostItem : lostItems) {
-            itemMatchService.createMatch(
-                    lostItem.getLostItemId(),
-                    savedItem.getFoundItemId()
-            );
+            itemMatchService.createMatch(lostItem.getLostItemId(), savedItem.getFoundItemId());
         }
 
         return convertToResponseDto(savedItem);
@@ -64,16 +71,13 @@ public class FoundItemService {
     public FoundItemResponseDto getFoundItemById(Long id) {
         FoundItem foundItem = foundItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Found Item Not Found"));
-
         return convertToResponseDto(foundItem);
     }
 
     public FoundItemResponseDto approveFoundItem(Long foundItemId) {
         FoundItem foundItem = foundItemRepository.findById(foundItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Found Item Not Found"));
-
         foundItem.setStatus("ACTIVE");
-
         FoundItem updatedItem = foundItemRepository.save(foundItem);
         return convertToResponseDto(updatedItem);
     }
@@ -81,9 +85,7 @@ public class FoundItemService {
     public FoundItemResponseDto rejectFoundItem(Long foundItemId) {
         FoundItem foundItem = foundItemRepository.findById(foundItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Found Item Not Found"));
-
         foundItem.setStatus("REJECTED");
-
         FoundItem updatedItem = foundItemRepository.save(foundItem);
         return convertToResponseDto(updatedItem);
     }

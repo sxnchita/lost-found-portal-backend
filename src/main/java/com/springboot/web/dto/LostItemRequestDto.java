@@ -13,7 +13,6 @@ public class LostItemRequestDto {
     private String category;
 
     private String color;
-
     private String model;
 
     @NotBlank(message = "Description is required")
@@ -26,10 +25,9 @@ public class LostItemRequestDto {
     private LocalDate lostDate;
 
     private String imageUrl;
-
     private String specialFeatures;
 
-    // Getters and Setters
+    private Long reportedById;
 
     public String getItemName() {
         return itemName;
@@ -101,5 +99,13 @@ public class LostItemRequestDto {
 
     public void setSpecialFeatures(String specialFeatures) {
         this.specialFeatures = specialFeatures;
+    }
+
+    public Long getReportedById() {
+        return reportedById;
+    }
+
+    public void setReportedById(Long reportedById) {
+        this.reportedById = reportedById;
     }
 }
