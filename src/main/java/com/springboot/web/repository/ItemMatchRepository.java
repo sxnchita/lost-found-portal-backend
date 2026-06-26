@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import com.springboot.web.entity.ItemMatch;
 
 public interface ItemMatchRepository extends JpaRepository<ItemMatch, Long> {
@@ -19,4 +20,6 @@ public interface ItemMatchRepository extends JpaRepository<ItemMatch, Long> {
             String status2,
             Long foundUserId
     );
+
+    List<ItemMatch> findByFoundItem_FoundItemId(Long foundItemId);
 }

@@ -1,6 +1,7 @@
 package com.springboot.web.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,11 +9,17 @@ import org.springframework.stereotype.Service;
 
 import com.springboot.web.dto.FoundItemRequestDto;
 import com.springboot.web.dto.FoundItemResponseDto;
+import com.springboot.web.entity.ClaimRequest;
 import com.springboot.web.entity.FoundItem;
+import com.springboot.web.entity.HandoverSchedule;
+import com.springboot.web.entity.ItemMatch;
 import com.springboot.web.entity.LostItem;
 import com.springboot.web.entity.User;
 import com.springboot.web.exception.ResourceNotFoundException;
+import com.springboot.web.repository.ClaimRequestRepository;
 import com.springboot.web.repository.FoundItemRepository;
+import com.springboot.web.repository.HandoverScheduleRepository;
+import com.springboot.web.repository.ItemMatchRepository;
 import com.springboot.web.repository.LostItemRepository;
 import com.springboot.web.repository.UserRepository;
 
@@ -30,6 +37,15 @@ public class FoundItemService {
 
     @Autowired
     private ItemMatchService itemMatchService;
+
+    @Autowired
+    private ItemMatchRepository itemMatchRepository;
+
+    @Autowired
+    private ClaimRequestRepository claimRequestRepository;
+
+    @Autowired
+    private HandoverScheduleRepository handoverScheduleRepository;
 
     public FoundItemResponseDto saveFoundItem(FoundItemRequestDto dto) {
         FoundItem foundItem = new FoundItem();
@@ -137,6 +153,33 @@ public class FoundItemService {
         if (foundItem.getReportedBy() != null) {
             dto.setReportedById(foundItem.getReportedBy().getUserId());
             dto.setReportedByName(foundItem.getReportedBy().getFullName());
+        }
+
+        dto.setMatchStatus("NO_MATCH");
+        dto.setClaimStatus("NO_CLAIM");
+        dto.setHandoverStatus("NOT_SCHEDULED");
+
+        List<ItemMatch> matches =
+                itemMatchRepository.findByFoundItem_FoundItemId(foundItem.getFoundItemId());
+
+        if (!matches.isEmpty()) {
+            ItemMatch match = matches.get(0);
+            dto.setMatchStatus(match.getMatchStatus());
+
+            Optional<ClaimRequest> claimOpt =
+                    claimRequestRepository.findByItemMatch_MatchId(match.getMatchId());
+
+            if (claimOpt.isPresent()) {
+                ClaimRequest claim = claimOpt.get();
+                dto.setClaimStatus(claim.getClaimStatus());
+
+                Optional<HandoverSchedule> handoverOpt =
+                        handoverScheduleRepository.findByClaimRequest_ClaimId(claim.getClaimId());
+
+                handoverOpt.ifPresent(handover ->
+                        dto.setHandoverStatus(handover.getHandoverStatus())
+                );
+            }
         }
 
         return dto;
