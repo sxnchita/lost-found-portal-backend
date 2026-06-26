@@ -35,6 +35,8 @@ public class FoundItem {
     @NotNull(message = "Found date is required")
     private LocalDate foundDate;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String imageUrl;
 
     @Column(length = 1000)

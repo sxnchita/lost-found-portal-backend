@@ -35,6 +35,8 @@ public class LostItem {
     @NotNull(message = "Lost date is required")
     private LocalDate lostDate;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String imageUrl;
 
     @Column(length = 1000)
