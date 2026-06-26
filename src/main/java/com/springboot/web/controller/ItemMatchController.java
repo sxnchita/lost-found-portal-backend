@@ -51,6 +51,7 @@ public class ItemMatchController {
     }
 
     private ItemMatchResponseDto convertToDto(ItemMatch match) {
+
         ItemMatchResponseDto dto = new ItemMatchResponseDto();
 
         dto.setMatchId(match.getMatchId());
@@ -59,26 +60,41 @@ public class ItemMatchController {
         dto.setMatchStatus(match.getMatchStatus());
         dto.setCreatedAt(match.getCreatedAt());
 
+        // LOST ITEM
         if (match.getLostItem() != null) {
             dto.setLostItemId(match.getLostItem().getLostItemId());
             dto.setLostItemName(match.getLostItem().getItemName());
+            dto.setLostCategory(match.getLostItem().getCategory());
+            dto.setLostColor(match.getLostItem().getColor());
+            dto.setLostLocation(match.getLostItem().getLostLocation());
+            dto.setLostDate(match.getLostItem().getLostDate());
+            dto.setLostDescription(match.getLostItem().getDescription());
 
             if (match.getLostItem().getReportedBy() != null) {
-                dto.setLostReportedById(match.getLostItem().getReportedBy().getUserId());
-                dto.setLostReportedByName(match.getLostItem().getReportedBy().getFullName());
+                dto.setLostReportedById(
+                        match.getLostItem().getReportedBy().getUserId());
+                dto.setLostReportedByName(
+                        match.getLostItem().getReportedBy().getFullName());
             }
         }
 
+        // FOUND ITEM
         if (match.getFoundItem() != null) {
             dto.setFoundItemId(match.getFoundItem().getFoundItemId());
             dto.setFoundItemName(match.getFoundItem().getItemName());
+            dto.setFoundCategory(match.getFoundItem().getCategory());
+            dto.setFoundColor(match.getFoundItem().getColor());
+            dto.setFoundLocation(match.getFoundItem().getFoundLocation());
+            dto.setFoundDate(match.getFoundItem().getFoundDate());
+            dto.setFoundDescription(match.getFoundItem().getDescription());
 
             if (match.getFoundItem().getReportedBy() != null) {
-                dto.setFoundReportedById(match.getFoundItem().getReportedBy().getUserId());
-                dto.setFoundReportedByName(match.getFoundItem().getReportedBy().getFullName());
+                dto.setFoundReportedById(
+                        match.getFoundItem().getReportedBy().getUserId());
+                dto.setFoundReportedByName(
+                        match.getFoundItem().getReportedBy().getFullName());
             }
         }
 
         return dto;
     }
-}
