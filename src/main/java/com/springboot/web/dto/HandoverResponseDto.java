@@ -5,23 +5,19 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class HandoverResponseDto {
-
     private Long handoverId;
-
     private Long claimId;
-
     private Long scheduledById;
 
+    private String itemName;
+    private String claimantName;
+    private String finderName;
+
     private String pickupLocation;
-
     private LocalDate pickupDate;
-
     private LocalTime pickupTime;
-
     private String instructions;
-
     private String handoverStatus;
-
     private LocalDateTime createdAt;
 
     public Long getHandoverId() {
@@ -46,6 +42,30 @@ public class HandoverResponseDto {
 
     public void setScheduledById(Long scheduledById) {
         this.scheduledById = scheduledById;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
+
+    public String getClaimantName() {
+        return claimantName;
+    }
+
+    public void setClaimantName(String claimantName) {
+        this.claimantName = claimantName;
+    }
+
+    public String getFinderName() {
+        return finderName;
+    }
+
+    public void setFinderName(String finderName) {
+        this.finderName = finderName;
     }
 
     public String getPickupLocation() {

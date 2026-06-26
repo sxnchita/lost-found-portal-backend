@@ -35,7 +35,6 @@ public class HandoverService {
     private AuditLogService auditLogService;
 
     public HandoverResponseDto scheduleHandover(HandoverRequestDto dto) {
-
         ClaimRequest claimRequest = claimRequestRepository.findById(dto.getClaimId())
                 .orElseThrow(() -> new ResourceNotFoundException("Claim Request Not Found"));
 
@@ -47,7 +46,6 @@ public class HandoverService {
                 .orElseThrow(() -> new ResourceNotFoundException("Scheduler User Not Found"));
 
         HandoverSchedule handover = new HandoverSchedule();
-
         handover.setClaimRequest(claimRequest);
         handover.setScheduledBy(scheduledBy);
         handover.setPickupLocation(dto.getPickupLocation());
@@ -92,7 +90,6 @@ public class HandoverService {
     }
 
     public HandoverResponseDto markHandoverCompleted(Long handoverId) {
-
         HandoverSchedule handover = handoverScheduleRepository.findById(handoverId)
                 .orElseThrow(() -> new ResourceNotFoundException("Handover Schedule Not Found"));
 
@@ -123,7 +120,6 @@ public class HandoverService {
     }
 
     private HandoverResponseDto convertToResponseDto(HandoverSchedule handover) {
-
         HandoverResponseDto dto = new HandoverResponseDto();
 
         dto.setHandoverId(handover.getHandoverId());
@@ -135,7 +131,35 @@ public class HandoverService {
         dto.setCreatedAt(handover.getCreatedAt());
 
         if (handover.getClaimRequest() != null) {
-            dto.setClaimId(handover.getClaimRequest().getClaimId());
+            ClaimRequest claimRequest = handover.getClaimRequest();
+
+            dto.setClaimId(claimRequest.getClaimId());
+
+            if (claimRequest.getClaimant() != null) {
+                dto.setClaimantName(claimRequest.getClaimant().getFullName());
+            }
+
+            if (claimRequest.getItemMatch() != null) {
+                if (claimRequest.getItemMatch().getLostItem() != null) {
+                    dto.setItemName(
+                            claimRequest.getItemMatch()
+                                    .getLostItem()
+                                    .getItemName()
+                    );
+                }
+
+                if (
+                        claimRequest.getItemMatch().getFoundItem() != null &&
+                        claimRequest.getItemMatch().getFoundItem().getReportedBy() != null
+                ) {
+                    dto.setFinderName(
+                            claimRequest.getItemMatch()
+                                    .getFoundItem()
+                                    .getReportedBy()
+                                    .getFullName()
+                    );
+                }
+            }
         }
 
         if (handover.getScheduledBy() != null) {
